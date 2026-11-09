@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon challenge de la semaine</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2a2224">
+<link rel="apple-touch-icon" href="/icon-192.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Challenge">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--fg:#1b2333;--mut:#667085;--acc:#e8590c;--blue:#2f4b7c;--ok:#2b9348;--line:#e3e7ef;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141c;--card:#1a2130;--fg:#eef1f7;--mut:#9aa6bd;--acc:#ff8a3d;--blue:#8fb0ee;--ok:#5ad27a;--line:#2a3347;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10141c;--card:#1a2130;--fg:#eef1f7;--mut:#9aa6bd;--acc:#ff8a3d;--blue:#8fb0ee;--ok:#5ad27a;--line:#2a3347;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:16px 14px 40px}
+h1{margin:0;font-size:1.25rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-weight:600}
+.pill.hot{border-color:var(--acc);color:var(--acc)}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tabs button{flex:1;padding:10px 4px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;font:inherit;font-weight:600}
+.tabs button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+button{font:inherit;cursor:pointer}
+.ib{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:1.3rem}
+.link{background:none;border:0;color:var(--blue);padding:0;text-decoration:underline;font-size:.9rem}
+.tag{display:inline-block;margin-left:8px;background:var(--acc);color:#fff;border-radius:6px;padding:0 8px;font-size:.8rem}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--ok));transition:width .3s}
+.task{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.task:last-child{border:0}
+.task time{color:var(--mut);font-variant-numeric:tabular-nums;min-width:46px}
+.task input[type=checkbox]{width:22px;height:22px;accent-color:var(--ok);flex:none}
+.task.done span{text-decoration:line-through;color:var(--mut)}
+.task.info{color:var(--mut)}
+.x{background:none;border:0;color:var(--mut);font-size:1.1rem;padding:4px 8px}
+.opt{font-size:.75rem;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+input[type=text],input[type=time],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+textarea{min-height:110px;resize:vertical}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600}
+.btn.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+.win{border-color:var(--ok);animation:pop .5s}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:99px;padding:4px 10px;font-size:.85rem}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mut{color:var(--mut);font-size:.9rem}
+.dg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.day{text-align:left;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px}
+.day.now{border-color:var(--acc)}.day.ok{border-color:var(--ok)}
+.sp{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const KEY="challenge_semaine_v1";
+const START=new Date(2026,10,8);
+const P=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+P(d.getMonth()+1)+"-"+P(d.getDate());
+const parse=s=>{const a=s.split("-");return new Date(+a[0],+a[1]-1,+a[2])};
+const add=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const DAYS=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const TODAY=iso(new Date());
+
+/* ===== MODÈLE DE SEMAINE : se génère tout seul pour chaque nouvelle semaine ===== */
+const T=(t,x,k)=>({t,x,k:k||"task"});
+const ENG=T("06:15","Anglais 10-15 min"),SPORT=T("06:30","Sport 25 min (maison)");
+const TPL={
+0:[T("06:30","Église (6h30-13h)","info"),T("13:30","Anglais : révision des mots"),T("14:00","Révision université (2h)"),T("16:00","Bilan de la semaine + thème suivant")],
+1:[T("08:30","ODC cybersécurité (8h30-17h)","info"),ENG,SPORT,T("21:00","Portfolio")],
+2:[ENG,T("19:00","Anglais : parler (45 min)"),T("21:00","Révision université (2h)")],
+3:[T("08:30","ODC cybersécurité (8h30-17h)","info"),ENG,SPORT,T("21:00","Révision cybersécurité (1h)"),T("22:00","Portfolio")],
+4:[T("08:00","Arduino à l’université (8h-15h30)","info"),ENG,T("19:30","Anglais : immersion (45 min)"),T("21:00","Révision cybersécurité (1h)"),T("22:00","Portfolio")],
+5:[T("08:00","C# et Data Mining (8h-17h)","info"),ENG,SPORT,T("21:00","Portfolio")],
+6:[T("08:00","Université (8h-15h)","info"),ENG,T("19:30","Anglais : écrire (45 min)")]};
+/* tâches ponctuelles de la semaine 1 */
+const ONE={
+"2026-11-08":{replace:true,list:[T("18:30","Charte graphique d’Assia (30 min)"),T("19:00","Stratégie des contenus Touch D’Encre"),T("20:30","Choisir le discours de la semaine")]},
+"2026-11-10":{list:[T("08:30","Flyers de la paroisse (30 min)"),T("09:00","Logo et palette Infini Digital (2h)"),T("11:00","3 visuels Touch D’Encre (1h30)"),T("13:30","Liste des 100 prospects (1h)"),T("14:30","Système de gestion de clients (1h)","opt")]}};
+
+const THEMES=[
+{n:"Éloquence",h:"Un seul discours, travaillé toute la semaine (Churchill, Rowling à Harvard, Ken Robinson…)."},
+{n:"Entrepreneuriat",h:"Un épisode de podcast de fondateurs (par exemple How I Built This), travaillé toute la semaine."},
+{n:"Psychologie",h:"Une série de vidéos ou d’articles courts sur un même sujet (par exemple Big Think)."},
+{n:"Rêve américain et vie anglophone",h:"Témoignages d’immigrants, vlogs sur la vie aux USA, BBC Learning English pour l’accent britannique."}];
+const AM=["Révision des mots et tournures de la semaine.","Écoute complète avec sous-titres anglais. Note 5 tournures.","Première partie du contenu. 5 expressions notées.","Deuxième partie. 5 expressions notées.","Troisième partie. 5 expressions notées.","Analyse : figures de style, idées clés.","Libre : réécoute ce que tu préfères."];
+const PM={2:"Parler : mini-discours de 2 min. Enregistre-toi, réécoute, corrige.",4:"Immersion : film ou documentaire en anglais, sous-titres anglais, 10 expressions retenues.",6:"Écrire : un court texte de réflexion sur ta semaine."};
+const NAMES=["Fondation 7/7","Le Pacte des 6h","Discipline over Mood","Bâtisseur, jour X","Journée productive, ou rien"];
+
+/* ===== ÉTAT (sauvegardé dans le navigateur) ===== */
+let S={name:NAMES[0],tasks:{},content:{},view:"today",sel:TODAY},MSG="";
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+S.sel=TODAY;S.view="today";
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const sortT=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
+function ensure(s){if(S.tasks[s])return;const o=ONE[s],wd=parse(s).getDay();
+ const base=o&&o.replace?o.list:(TPL[wd]||[]).concat(o?o.list:[]);
+ S.tasks[s]=sortT(base.map(x=>Object.assign({},x,{id:uid(),d:false})));}
+function dayStat(s){ensure(s);const ts=S.tasks[s].filter(x=>x.k==="task");const d=ts.filter(x=>x.d).length;return{n:ts.length,d,ok:ts.length>0&&d===ts.length}}
+const wStart=s=>add(s,-parse(s).getDay());
+const wIdx=s=>Math.max(0,Math.round((parse(wStart(s))-START)/6048e5));
+function streak(){let s=TODAY,c=0;if(!dayStat(s).ok)s=add(s,-1);while(s>=iso(START)&&dayStat(s).ok){c++;s=add(s,-1)}return c}
+function wCount(s){const w=wStart(s);let c=0;for(let i=0;i<7;i++)if(dayStat(add(w,i)).ok)c++;return c}
+
+/* ===== OUTILS D’AFFICHAGE ===== */
+function el(tag,a,...kids){const e=document.createElement(tag);for(const k in a||{}){const v=a[k];
+ if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(k==="class")e.className=v;else if(k.includes("-"))e.setAttribute(k,v);else if(v!==false&&v!=null)e[k]=v}
+ kids.flat().forEach(c=>{if(c!==false&&c!=null)e.append(c)});return e}
+const go=s=>{S.sel=s;S.view="today";render()};
+const label=s=>{const d=parse(s);return DAYS[d.getDay()]+" "+d.getDate()+" "+MONTHS[d.getMonth()]};
+
+function header(){const st=streak();
+ return el("div",{},
+  el("div",{class:"row"},el("h1",{},"🔥"),el("input",{type:"text",value:S.name,"aria-label":"Nom du challenge",onchange:e=>{S.name=e.target.value||NAMES[0];save();render()}})),
+  el("div",{class:"chips",style:"margin-top:8px"},NAMES.map(n=>el("button",{class:"chip"+(n===S.name?" on":""),onclick:()=>{S.name=n;save();render()}},n))),
+  el("div",{class:"pills"},el("span",{class:"pill hot"},"🔥 "+st+(st>1?" jours d’affilée":" jour d’affilée")),el("span",{class:"pill"},"📅 "+wCount(S.sel)+"/7 cette semaine"),el("span",{class:"pill"},"Semaine "+(wIdx(S.sel)+1)+" · "+THEMES[wIdx(S.sel)%4].n)));}
+function tabs(){return el("div",{class:"tabs"},[["today","Jour"],["week","Semaine"],["eng","Anglais"]].map(([v,t])=>el("button",{class:S.view===v?"on":"",onclick:()=>{S.view=v;render()}},t)));}
+
+function shareText(s){const ts=S.tasks[s].filter(x=>x.k==="task"&&x.d).map(x=>x.x.replace(/\s*\(.*?\)/g,""));
+ return S.name+" 🔥\nJournée productive validée ! "+wCount(s)+"/7 cette semaine, "+streak()+" jour(s) d’affilée.\n✅ "+ts.slice(0,6).join(" · ")+"\nThème anglais : "+THEMES[wIdx(s)%4].n+"\n#discipline #challenge";}
+function copy(t,ta){try{navigator.clipboard.writeText(t).then(()=>{MSG="Texte copié ✔";render()},()=>fb())}catch(e){fb()}
+ function fb(){ta.select();try{document.execCommand("copy");MSG="Texte copié ✔"}catch(e){MSG="Sélectionne et copie le texte."}render()}}
+
+function dayView(){const s=S.sel;ensure(s);const ts=S.tasks[s],st=dayStat(s),pct=st.n?Math.round(st.d/st.n*100):0;
+ const list=ts.map(t=>t.k==="info"?el("div",{class:"task info"},el("time",{},t.t),el("span",{class:"grow"},"📍 "+t.x),el("button",{class:"x",onclick:()=>{S.tasks[s]=ts.filter(y=>y!==t);save();render()},"aria-label":"Supprimer"},"✕"))
+  :el("label",{class:"task"+(t.d?" done":"")},el("input",{type:"checkbox",checked:t.d,onchange:e=>{t.d=e.target.checked;save();render()}}),el("time",{},t.t),el("span",{class:"grow"},t.x," ",t.k==="opt"&&el("span",{class:"opt"},"optionnel")),el("button",{class:"x",onclick:e=>{e.preventDefault();S.tasks[s]=ts.filter(y=>y!==t);save();render()},"aria-label":"Supprimer"},"✕")));
+ const nav=el("div",{class:"row"},el("button",{class:"ib",onclick:()=>go(add(s,-1)),"aria-label":"Jour précédent"},"‹"),
+  el("div",{class:"grow"},el("b",{},label(s)),s===TODAY?el("span",{class:"tag"},"aujourd’hui"):el("div",{},el("button",{class:"link",onclick:()=>go(TODAY)},"revenir à aujourd’hui"))),
+  el("button",{class:"ib",onclick:()=>go(add(s,1)),"aria-label":"Jour suivant"},"›"));
+ const tI=el("input",{type:"time",value:"20:00",style:"width:110px"}),xI=el("input",{type:"text",placeholder:"Nouvelle tâche"}),oI=el("input",{type:"checkbox"});
+ const addF=el("div",{class:"card"},el("b",{},"Ajouter une tâche"),el("div",{class:"row",style:"margin:8px 0"},tI,xI),
+  el("div",{class:"row"},el("label",{class:"mut grow"},oI," optionnelle"),el("button",{class:"btn",onclick:()=>{if(!xI.value.trim())return;S.tasks[s].push({id:uid(),t:tI.value||"20:00",x:xI.value.trim(),k:oI.checked?"opt":"task",d:false});sortT(S.tasks[s]);save();render()}},"Ajouter")));
+ let win=null;if(st.ok){const ta=el("textarea",{readOnly:true,value:shareText(s)});
+  win=el("div",{class:"card win"},el("b",{},"🎉 Journée productive !"),el("p",{class:"mut"},"Poste ta photo avec ce texte (Facebook ou WhatsApp)."),ta,el("div",{class:"sp"},el("button",{class:"btn",onclick:()=>copy(ta.value,ta)},"Copier le texte")));}
+ const acts=el("div",{class:"sp"},el("button",{class:"btn alt",onclick:()=>{S.tasks[add(s,7)]=ts.map(x=>Object.assign({},x,{id:uid(),d:false}));save();MSG="Jour copié sur "+label(add(s,7));render()}},"Répéter la semaine prochaine"),
+  el("button",{class:"btn alt",onclick:()=>{delete S.tasks[s];save();render()}},"Remettre à zéro"));
+ return el("div",{},el("div",{class:"card"},nav,el("div",{class:"bar"},el("i",{style:"width:"+pct+"%"})),el("div",{class:"mut"},st.d+"/"+st.n+" tâches clés faites"+(pct===100?" 💪":""))),
+  win,el("div",{class:"card"},list.length?list:el("div",{class:"mut"},"Rien de prévu.")),addF,acts);}
+
+function weekView(){const w=wStart(S.sel);const cells=[];for(let i=0;i<7;i++){const s=add(w,i),st=dayStat(s);
+  cells.push(el("button",{class:"day"+(s===TODAY?" now":"")+(st.ok?" ok":""),onclick:()=>go(s)},el("b",{},DAYS[i]+" "+parse(s).getDate()),el("div",{class:"mut"},st.d+"/"+st.n+(st.ok?" ✅":""))));}
+ return el("div",{},el("div",{class:"card row"},el("button",{class:"ib",onclick:()=>{S.sel=add(S.sel,-7);render()}},"‹"),el("div",{class:"grow"},el("b",{},"Semaine "+(wIdx(S.sel)+1)),el("div",{class:"mut"},label(w)+" → "+label(add(w,6)))),el("button",{class:"ib",onclick:()=>{S.sel=add(S.sel,7);render()}},"›")),
+  el("div",{class:"dg"},cells),el("p",{class:"mut"},"Chaque nouvelle semaine se remplit toute seule à partir de ton modèle."));}
+
+function engView(){const w=wIdx(S.sel),th=THEMES[w%4],wd=parse(S.sel).getDay();
+ const ci=el("input",{type:"text",placeholder:"Ex. Churchill, We shall fight on the beaches",value:S.content[w]||"",onchange:e=>{S.content[w]=e.target.value;save()}});
+ return el("div",{},el("div",{class:"card"},el("div",{class:"mut"},"Semaine "+(w+1)),el("h1",{},th.n),el("p",{},th.h),el("b",{},"Mon contenu de la semaine"),el("div",{style:"margin-top:6px"},ci),el("p",{class:"mut"},"Règle : on ne change pas de thème en cours de semaine. Les idées vont dans la liste « à plus tard ».")),
+  el("div",{class:"card"},el("b",{},"Mission du "+label(S.sel)),el("p",{},"🌅 Matin (10-15 min) : "+AM[wd]),PM[wd]&&el("p",{},"🌙 Soir (45 min) : "+PM[wd])),
+  el("div",{class:"card"},el("b",{},"Les 4 thèmes en rotation"),THEMES.map((t,i)=>el("div",{class:"task"},el("span",{class:"grow"},(i===w%4?"▶ ":"")+(i+1)+". "+t.n)))));}
+
+function render(){const a=document.getElementById("app");
+ a.replaceChildren(header(),tabs(),S.view==="today"?dayView():S.view==="week"?weekView():engView(),el("p",{class:"mut"},MSG));MSG="";}
+render();
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(error => console.error("Échec de l’enregistrement du service worker :", error));
+}
+</script>
+</body>
+</html>
